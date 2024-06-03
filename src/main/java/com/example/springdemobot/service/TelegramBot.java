@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -18,7 +19,6 @@ import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScope
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -69,10 +69,9 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        long chatId = update.getMessage().getChatId();
-        String firstName = update.getMessage().getChat().getFirstName();
-
         if (update.hasMessage() && update.getMessage().hasText()) {
+            long chatId = update.getMessage().getChatId();
+            String firstName = update.getMessage().getChat().getFirstName();
             String text = update.getMessage().getText();
 
             switch (text) {
@@ -88,6 +87,35 @@ public class TelegramBot extends TelegramLongPollingBot {
                     break;
                 default:
                     sendMessage(chatId, "Sorry, command wasn't recognized!");
+            }
+        } else if (update.hasCallbackQuery()) {
+            String callbackData = update.getCallbackQuery().getData();
+            long messageId = update.getCallbackQuery().getMessage().getMessageId();
+            long chatId = update.getCallbackQuery().getMessage().getChatId();
+
+            String text;
+            if (callbackData.equals("YES_BUTTON")) {
+                text = "You pressed YES";
+                EditMessageText message = new EditMessageText();
+                message.setChatId(String.valueOf(chatId));
+                message.setMessageId((int) messageId);
+                message.setText(text);
+                try {
+                    execute(message);
+                } catch (TelegramApiException e) {
+                    log.error("Error: " + e.getMessage());
+                }
+            } else if (callbackData.equals("NO_BUTTON")) {
+                text = "You pressed NO";
+                EditMessageText message = new EditMessageText();
+                message.setChatId(String.valueOf(chatId));
+                message.setMessageId((int) messageId);
+                message.setText(text);
+                try {
+                    execute(message);
+                } catch (TelegramApiException e) {
+                    log.error("Error: " + e.getMessage());
+                }
             }
         }
     }
@@ -166,7 +194,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         keyboardMarkup.setKeyboard(keyboardRows);
         message.setReplyMarkup(keyboardMarkup);
-
 
         try {
             execute(message);
