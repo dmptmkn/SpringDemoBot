@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 public class User {
 
     @Id
-    private long chatId;
+    private Long chatId;
 
     private String firstName;
 
