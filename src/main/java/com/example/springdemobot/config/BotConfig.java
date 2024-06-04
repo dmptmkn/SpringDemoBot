@@ -18,6 +18,9 @@ public class BotConfig {
     @NotBlank
     String token;
 
+    @NotBlank
+    Long ownerId;
+
 }
 
 
