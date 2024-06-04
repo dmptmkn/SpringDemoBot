@@ -1,11 +1,14 @@
 package com.example.springdemobot.service;
 
 import com.example.springdemobot.config.BotConfig;
+import com.example.springdemobot.model.Ad;
 import com.example.springdemobot.model.User;
+import com.example.springdemobot.repository.AdRepository;
 import com.example.springdemobot.repository.UserRepository;
 import com.vdurmont.emoji.EmojiParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
@@ -32,6 +35,8 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private AdRepository adRepository;
     final BotConfig config;
 
     static final String HELP_TEXT = """
@@ -209,6 +214,18 @@ public class TelegramBot extends TelegramLongPollingBot {
             execute(message);
         } catch (TelegramApiException e) {
             log.error(ERROR_MESSAGE + e.getMessage());
+        }
+    }
+
+    @Scheduled(cron = "0 * * * * *")
+    private void sendAd() {
+        List<Ad> allAds = adRepository.findAll();
+        List<User> allUsers = userRepository.findAll();
+
+        for (Ad ad : allAds) {
+            for (User user : allUsers) {
+                prepareAndSendMessage(user.getChatId(), ad.getAd());
+            }
         }
     }
 }
