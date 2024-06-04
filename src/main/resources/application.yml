@@ -1,6 +1,7 @@
 bot:
   name: MySpringTelegramDemoBot
   token: 7098220578:AAEWMuwg594oNhf7_rvk9Tkjbp-s7Ch9afw
+  ownerId: 111217901
 
 #Spring DB-configuration
 spring:
